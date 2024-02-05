@@ -1,0 +1,119 @@
+﻿@model Services.Model.Invite.InviteModel
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script>
+        //Iphone
+       var isIphone = true,
+        URL_SCHEMA = "webapi://",
+        APP_STORE_URL = "itms://itunes.apple.com/us/app/workoutxchange/id1385553441?ls=1&mt=8",
+        APP_STORE_URL_IPAD = "itms://itunes.apple.com/us/app/workoutxchange/id1385553441?ls=1&mt=8",
+           
+        COOKIE_NAME = "action";
+        COOKIE_NAME_REFERRER = "referrer";
+
+        //Desktop url
+        DESKTOP_URL = "https://itunes.apple.com/us/app/workoutxchange/id1385553441?ls=1&mt=8";
+
+        var openDate;
+        var timeuot = 700;
+        function OpenApp(action, referrer) {
+            action = $('#InviteLink').val();
+            APP_STORE_URL = $('#AppStoreLink').val();
+            if (action != null) {
+                var store_url;
+                var schema_url;
+                if (navigator.userAgent.match(/iPhone/)) {
+                    //iOS
+                    store_url = APP_STORE_URL;
+                    schema_url = URL_SCHEMA + action;
+                    var isiPad = navigator.userAgent.match(/iPad/i) != null;
+                    if (isiPad) {
+                        store_url = APP_STORE_URL_IPAD;
+                    }
+
+                    window.location = schema_url;
+                    openDate = new Date();
+                    setTimeout(function () {
+                        var now = new Date();
+                        if (now - openDate < timeuot * 1.5) {
+                            SetCookie(COOKIE_NAME, action, 7);
+                            SetCookie(COOKIE_NAME_REFERRER, referrer, 7);
+                            window.location = store_url;
+                        }
+                        setTimeout(function () {
+                            window.close();
+                        }, 100);
+                    }, timeuot);
+                } else {
+                    //browser
+                    location.href = DESKTOP_URL + "action=" + action;
+                }
+            }
+        }
+
+        function HandelQueryLoad() {
+            var action = $.url().param('action');
+            if (action) {
+                var referrer = getURLParam('referrer');
+                OpenApp(action, referrer);
+            }
+            else {
+                OpenApp("", "");
+            }
+        }
+
+        function HandleCookieLoad() {
+            var action = $.cookie(COOKIE_NAME);
+            var referrer = $.cookie(COOKIE_NAME_REFERRER);
+            SetCookie(COOKIE_NAME, "", -1);
+            SetCookie(COOKIE_NAME_REFERRER, "", -1);
+            if (action) {
+                OpenApp(action, referrer);
+            }
+            else {
+                OpenApp("", "");
+            }
+        }
+
+        function SetCookie(key, value, exp) {
+            $.cookie(key, value, { expires: exp, path: '/' });
+        }
+
+        function getURLParam(name) {
+            // get query string part of url into its own variable
+            var url = window.location.href;
+            var query_string = url.split("?");
+
+            // make array of all name/value pairs in query string
+            var params = query_string[1].split("&");
+
+            // loop through the parameters
+            var i = 0;
+            while (i < params.length) {
+                // compare param name against arg passed in
+                var param_item = params[i].split("=");
+                if (param_item[0] == name) {
+                    // if they match, return the value
+                    return param_item[1];
+                }
+                i++;
+            }
+            return "";
+        }
+
+        $(document).ready(function () {
+            //HandelQueryLoad();
+            HandleCookieLoad();
+        });
+    </script>
+</head>
+
+<body>
+@Html.HiddenFor(x => x.AppStoreLink)
+@Html.HiddenFor(x => x.InviteLink)
+</body>
